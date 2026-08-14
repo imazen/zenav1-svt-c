@@ -10,6 +10,7 @@
  */
 
 #include <smmintrin.h>
+#include <string.h>
 #include "common_dsp_rtcd.h"
 #include "synonyms.h"
 #include "common_utils.h"
@@ -49,7 +50,7 @@ void svt_av1_filter_intra_predictor_sse4_1(uint8_t* dst, ptrdiff_t stride, TxSiz
     for (r = 1; r < bh + 1; r += 2) {
         for (c = 1; c < bw + 1; c += 4) {
             DECLARE_ALIGNED(16, uint8_t, p[8]);
-            svt_memcpy_intrin_sse(p, &buffer[r - 1][c - 1], 5 * sizeof(uint8_t));
+            memcpy(p, &buffer[r - 1][c - 1], 5);
             p[5]                       = buffer[r][c - 1];
             p[6]                       = buffer[r + 1][c - 1];
             p[7]                       = 0;
