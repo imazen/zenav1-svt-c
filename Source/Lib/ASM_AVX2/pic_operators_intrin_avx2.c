@@ -1779,3 +1779,25 @@ void svt_aom_hadamard_32x32_avx2(const int16_t* src_diff, ptrdiff_t src_stride, 
         t_coeff += 16;
     }
 }
+
+void svt_memcpy_intrin_avx2(void* dst_ptr, void const* src_ptr, size_t size) {
+    const unsigned char* src = src_ptr;
+    unsigned char*       dst = dst_ptr;
+    size_t               i   = 0;
+
+    while ((i + 32) <= size) {
+        _mm256_storeu_si256((__m256i*)(dst + i), _mm256_loadu_si256((const __m256i*)(src + i)));
+        i += 32;
+    }
+    if ((i + 16) <= size) {
+        _mm_storeu_si128((__m128i*)(dst + i), _mm_loadu_si128((const __m128i*)(src + i)));
+        i += 16;
+    }
+    if ((i + 8) <= size) {
+        _mm_storel_epi64((__m128i*)(dst + i), _mm_loadl_epi64((const __m128i*)(src + i)));
+        i += 8;
+    }
+    for (; i < size; ++i) {
+        dst[i] = src[i];
+    }
+}

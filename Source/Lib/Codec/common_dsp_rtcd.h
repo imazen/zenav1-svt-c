@@ -1080,6 +1080,7 @@ RTCD_EXTERN void(*svt_aom_lpf_vertical_6)(uint8_t *s, int32_t pitch, const uint8
 void svt_aom_lpf_vertical_8_c(uint8_t *s, int32_t pitch, const uint8_t *blimit, const uint8_t *limit, const uint8_t *thresh);
 RTCD_EXTERN void(*svt_aom_lpf_vertical_8)(uint8_t *s, int32_t pitch, const uint8_t *blimit, const uint8_t *limit, const uint8_t *thresh);
 void svt_memcpy_c(void  *dst_ptr, void  const*src_ptr, size_t size);
+void svt_memcpy_intrin_avx2(void *dst_ptr, void const *src_ptr, size_t size);
 RTCD_EXTERN void (*svt_memcpy)(void  *dst_ptr, void  const*src_ptr, size_t size);
 void svt_memset_c(void *dst_ptr, int c, size_t size);
 RTCD_EXTERN void (*svt_memset)(void *dst_ptr, int c, size_t size);

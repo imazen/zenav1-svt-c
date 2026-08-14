@@ -1060,7 +1060,7 @@ void svt_aom_setup_common_rtcd_internal(EbCpuFlags flags) {
 #endif
     SET_ONLY_C(svt_av1_copy_wxh_8bit, svt_av1_copy_wxh_8bit_c);
     SET_ONLY_C(svt_av1_copy_wxh_16bit, svt_av1_copy_wxh_16bit_c);
-    SET_SSE2(svt_memcpy, svt_memcpy_c, svt_memcpy_intrin_sse);
+    SET_SSE2_AVX2(svt_memcpy, svt_memcpy_c, svt_memcpy_intrin_sse, svt_memcpy_intrin_avx2);
     SET_ONLY_C(svt_memset, svt_memset_c);
     SET_AVX2(svt_aom_hadamard_32x32, svt_aom_hadamard_32x32_c, svt_aom_hadamard_32x32_avx2);
     SET_AVX2(svt_aom_hadamard_16x16, svt_aom_hadamard_16x16_c, svt_aom_hadamard_16x16_avx2);
