@@ -35,6 +35,7 @@ set(all_files
     blend_a64_mask_sse4.c
     blend_sse4.h
     cdef_block_sse4_1.c
+    cdef_filter_block_sse4_1.c
     cdef_sse4.c
     compute_sad_intrin_sse4_1.c
     corner_match_sse4.c

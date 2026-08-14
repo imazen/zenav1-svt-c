@@ -852,10 +852,10 @@ void svt_aom_setup_common_rtcd_internal(EbCpuFlags flags) {
     SET_SSE41_AVX2(svt_aom_cdef_find_dir, svt_aom_cdef_find_dir_c, svt_aom_cdef_find_dir_sse4_1, svt_aom_cdef_find_dir_avx2);
     SET_SSE41_AVX2(svt_aom_cdef_find_dir_dual, svt_aom_cdef_find_dir_dual_c, svt_aom_cdef_find_dir_dual_sse4_1, svt_aom_cdef_find_dir_dual_avx2);
     SET_SSE41_AVX2(svt_cdef_filter_block, svt_cdef_filter_block_c, svt_av1_cdef_filter_block_sse4_1, svt_cdef_filter_block_avx2);
-    SET_ONLY_C(svt_cdef_filter_block_8bit, svt_cdef_filter_block_8bit_c);
-    SET_ONLY_C(svt_cdef_filter_block_8bit_bounded, svt_cdef_filter_block_8bit_bounded_c);
-    SET_ONLY_C(svt_aom_cdef_find_dir_8bit, svt_aom_cdef_find_dir_8bit_c);
-    SET_ONLY_C(svt_aom_cdef_find_dir_dual_8bit, svt_aom_cdef_find_dir_dual_8bit_c);
+    SET_SSE41_AVX2(svt_cdef_filter_block_8bit, svt_cdef_filter_block_8bit_c, svt_cdef_filter_block_8bit_sse4_1, svt_cdef_filter_block_8bit_avx2);
+    SET_SSE41_AVX2(svt_cdef_filter_block_8bit_bounded, svt_cdef_filter_block_8bit_bounded_c, svt_cdef_filter_block_8bit_bounded_sse4_1, svt_cdef_filter_block_8bit_bounded_avx2);
+    SET_SSE41_AVX2(svt_aom_cdef_find_dir_8bit, svt_aom_cdef_find_dir_8bit_c, svt_aom_cdef_find_dir_8bit_sse4_1, svt_aom_cdef_find_dir_8bit_avx2);
+    SET_SSE41_AVX2(svt_aom_cdef_find_dir_dual_8bit, svt_aom_cdef_find_dir_dual_8bit_c, svt_aom_cdef_find_dir_dual_8bit_sse4_1, svt_aom_cdef_find_dir_dual_8bit_avx2);
     /* No C version, use only internal in kerneal: svt_cdef_filter_block_avx2() */
     if (flags & EB_CPU_FLAGS_AVX2)    svt_cdef_filter_block_8xn_16 = svt_cdef_filter_block_8xn_16_avx2;
 #if EN_AVX512_SUPPORT

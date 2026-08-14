@@ -276,8 +276,9 @@
 #define CONFIG_SINGLE_THREAD_KERNEL         1
 #endif
 
-// Native 8-bit CDEF NEON path (interior blocks in uint8 lanes). ARM-only.
-#if defined(ARCH_AARCH64)
+// Native 8-bit CDEF path (interior blocks in uint8 lanes). NEON, and x86 from
+// SSE4.1 up.
+#if defined(ARCH_AARCH64) || defined(ARCH_X86_64)
 #define CDEF_8BITS_PATH 1
 #else
 #define CDEF_8BITS_PATH 0
