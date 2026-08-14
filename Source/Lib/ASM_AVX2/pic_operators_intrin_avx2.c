@@ -638,23 +638,35 @@ void svt_full_distortion_kernel32_bits_avx2(int32_t* coeff, int32_t* recon_coeff
     do {
         int32_t* coeff_temp       = coeff;
         int32_t* recon_coeff_temp = recon_coeff;
+        uint32_t col              = area_width;
 
-        uint32_t col_count = area_width / 4;
-        do {
-            __m128i x0, y0;
-            __m256i x, y, z;
-            x0   = _mm_loadu_si128((__m128i*)(coeff_temp));
-            y0   = _mm_loadu_si128((__m128i*)(recon_coeff_temp));
-            x    = _mm256_cvtepi32_epi64(x0);
-            y    = _mm256_cvtepi32_epi64(y0);
-            z    = _mm256_mul_epi32(x, x);
-            sum2 = _mm256_add_epi64(sum2, z);
-            x    = _mm256_sub_epi64(x, y);
-            x    = _mm256_mul_epi32(x, x);
-            sum1 = _mm256_add_epi64(sum1, x);
+        // _mm256_mul_epi32 squares the even 32-bit lanes; shifting each 64-bit lane
+        // down by 32 brings the odd lanes into position for a second pass. Exact for
+        // any int32 input, with no assumption that the squares fit 32 bits.
+        while (col >= 8) {
+            const __m256i x  = _mm256_loadu_si256((const __m256i*)coeff_temp);
+            const __m256i y  = _mm256_loadu_si256((const __m256i*)recon_coeff_temp);
+            const __m256i d  = _mm256_sub_epi32(x, y);
+            const __m256i xo = _mm256_srli_epi64(x, 32);
+            const __m256i dd = _mm256_srli_epi64(d, 32);
+            sum2 = _mm256_add_epi64(sum2, _mm256_add_epi64(_mm256_mul_epi32(x, x), _mm256_mul_epi32(xo, xo)));
+            sum1 = _mm256_add_epi64(sum1, _mm256_add_epi64(_mm256_mul_epi32(d, d), _mm256_mul_epi32(dd, dd)));
+            coeff_temp += 8;
+            recon_coeff_temp += 8;
+            col -= 8;
+        }
+        while (col >= 4) {
+            __m128i       x0 = _mm_loadu_si128((__m128i*)(coeff_temp));
+            __m128i       y0 = _mm_loadu_si128((__m128i*)(recon_coeff_temp));
+            __m256i       x  = _mm256_cvtepi32_epi64(x0);
+            const __m256i y  = _mm256_cvtepi32_epi64(y0);
+            sum2             = _mm256_add_epi64(sum2, _mm256_mul_epi32(x, x));
+            x                = _mm256_sub_epi64(x, y);
+            sum1             = _mm256_add_epi64(sum1, _mm256_mul_epi32(x, x));
             coeff_temp += 4;
             recon_coeff_temp += 4;
-        } while (--col_count);
+            col -= 4;
+        }
 
         coeff += stride;
         recon_coeff += stride;
