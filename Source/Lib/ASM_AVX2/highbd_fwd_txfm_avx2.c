@@ -2672,7 +2672,15 @@ static void fadst16x16_avx2(const __m256i* in, __m256i* out, int8_t bit, const i
     }
 }
 
+void svt_lbd_fwd_txfm2d_16x16_dct_avx2(int16_t* input, int32_t* output, uint32_t stride);
+
 void svt_av1_fwd_txfm2d_16x16_avx2(int16_t* input, int32_t* coeff, uint32_t stride, TxType tx_type, uint8_t bd) {
+    // 8-bit content runs the int16 path, where a 16-wide row is one __m256i
+    // rather than two.
+    if (bd == EB_EIGHT_BIT && tx_type == DCT_DCT) {
+        svt_lbd_fwd_txfm2d_16x16_dct_avx2(input, coeff, stride);
+        return;
+    }
     __m256i       in[32], out[32];
     const int8_t* shift   = fwd_txfm_shift_ls[TX_16X16];
     const int32_t txw_idx = get_txw_idx(TX_16X16);
@@ -3861,7 +3869,13 @@ static INLINE void fwd_txfm2d_32x32_avx2(const int16_t* input, int32_t* output, 
     transpose_32_avx2(txfm_size, buf_256, out_256);
 }
 
+void svt_lbd_fwd_txfm2d_32x32_dct_avx2(int16_t* input, int32_t* output, uint32_t stride);
+
 void svt_av1_fwd_txfm2d_32x32_avx2(int16_t* input, int32_t* output, uint32_t stride, TxType tx_type, uint8_t bd) {
+    if (bd == EB_EIGHT_BIT && tx_type == DCT_DCT) {
+        svt_lbd_fwd_txfm2d_32x32_dct_avx2(input, output, stride);
+        return;
+    }
     DECLARE_ALIGNED(32, int32_t, txfm_buf[1024]);
     Txfm2dFlipCfg cfg;
     svt_aom_transform_config(tx_type, TX_32X32, &cfg);
@@ -4329,7 +4343,13 @@ static const FwdTransform1dAvx2 row_fwdtxfm_8x16_arr[TX_TYPES] = {
 };
 
 /* call this function only for DCT_DCT, IDTX */
+void svt_lbd_fwd_txfm2d_16x32_dct_avx2(int16_t* input, int32_t* output, uint32_t stride);
+
 void svt_av1_fwd_txfm2d_16x32_avx2(int16_t* input, int32_t* output, uint32_t stride, TxType tx_type, uint8_t bd) {
+    if (bd == EB_EIGHT_BIT && tx_type == DCT_DCT) {
+        svt_lbd_fwd_txfm2d_16x32_dct_avx2(input, output, stride);
+        return;
+    }
     __m256i                  in[64];
     __m256i*                 outcoef256    = (__m256i*)output;
     const int8_t*            shift         = fwd_txfm_shift_ls[TX_16X32];
@@ -4363,7 +4383,13 @@ void svt_av1_fwd_txfm2d_16x32_avx2(int16_t* input, int32_t* output, uint32_t str
 }
 
 /* call this function only for IDTX */
+void svt_lbd_fwd_txfm2d_32x16_dct_avx2(int16_t* input, int32_t* output, uint32_t stride);
+
 void svt_av1_fwd_txfm2d_32x16_avx2(int16_t* input, int32_t* output, uint32_t stride, TxType tx_type, uint8_t bd) {
+    if (bd == EB_EIGHT_BIT && tx_type == DCT_DCT) {
+        svt_lbd_fwd_txfm2d_32x16_dct_avx2(input, output, stride);
+        return;
+    }
     __m256i                  in[64];
     __m256i*                 outcoef256    = (__m256i*)output;
     const int8_t*            shift         = fwd_txfm_shift_ls[TX_32X16];

@@ -71,6 +71,7 @@ set(all_files
     itx_lbd.h
     jnt_convolve_2d_avx2.c
     jnt_convolve_avx2.c
+    lowbd_fwd_txfm2d_avx2.c
     mc.h
     memory_avx2.h
     noise_model_avx2.c
