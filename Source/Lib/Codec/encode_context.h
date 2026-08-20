@@ -152,8 +152,6 @@ typedef struct EncodeContext {
     EbObjectWrapper* previous_picture_control_set_wrapper_ptr;
     uint64_t         picture_number_alt; // The picture number overlay includes all the overlay frames
 
-    EbHandle stat_file_mutex;
-
     bool                 is_mini_gop_changed;
     uint64_t             poc_map_idx[MAX_TPL_LA_SW];
     EbPictureBufferDesc* mc_flow_rec_picture_buffer[MAX_TPL_LA_SW];

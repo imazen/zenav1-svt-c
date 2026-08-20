@@ -60,7 +60,6 @@ static void encode_context_dctor(EbPtr p) {
     EB_DESTROY_MUTEX(obj->total_number_of_recon_frame_mutex);
     EB_DESTROY_MUTEX(obj->total_number_of_shown_frames_mutex);
     EB_DESTROY_MUTEX(obj->sc_buffer_mutex);
-    EB_DESTROY_MUTEX(obj->stat_file_mutex);
     EB_DESTROY_MUTEX(obj->frame_updated_mutex);
     EB_DELETE(obj->prediction_structure_group_ptr);
     EB_DELETE_PTR_ARRAY(obj->picture_decision_reorder_queue, obj->picture_decision_reorder_queue_size);
@@ -120,9 +119,8 @@ EbErrorType svt_aom_encode_context_ctor(EncodeContext* enc_ctx, EbPtr object_ini
     enc_ctx->enc_mode         = SPEED_CONTROL_INIT_MOD;
     enc_ctx->recode_tolerance = 25;
     enc_ctx->rc_cfg.min_cr    = 0;
-    EB_CREATE_MUTEX(enc_ctx->stat_file_mutex);
-    enc_ctx->num_lap_buffers = 0; // lap not supported for now
-    int* num_lap_buffers     = &enc_ctx->num_lap_buffers;
+    enc_ctx->num_lap_buffers  = 0; // lap not supported for now
+    int* num_lap_buffers      = &enc_ctx->num_lap_buffers;
     create_stats_buffer(&enc_ctx->frame_stats_buffer, &enc_ctx->stats_buf_context, *num_lap_buffers);
     EB_ALLOC_PTR_ARRAY(enc_ctx->rc.coded_frames_stat_queue, CODED_FRAMES_STAT_QUEUE_MAX_DEPTH);
 

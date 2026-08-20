@@ -4380,7 +4380,10 @@ static void send_picture_out(SequenceControlSet* scs, PictureParentControlSet* p
             svt_block_on_semaphore(scs->ref_buffer_available_semaphore);
     }
 
-    for (uint32_t segment_index = 0; segment_index < pcs->me_segments_total_count; ++segment_index) {
+    // Snapshot the count, pcs can get reset at the last iteration
+    const uint32_t me_segments_total_count = pcs->me_segments_total_count;
+
+    for (uint32_t segment_index = 0; segment_index < me_segments_total_count; ++segment_index) {
         // Get Empty Results Object
         svt_get_empty_object(ctx->picture_decision_results_output_fifo_ptr, &out_results_wrapper);
 

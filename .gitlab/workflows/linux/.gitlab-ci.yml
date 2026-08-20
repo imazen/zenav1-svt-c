@@ -238,10 +238,11 @@ Linux Sanitizer Test:
       - SANITIZER: memory
         svt_asm: 0
       - SANITIZER: thread
+        RC: ["", "--rc 1 --tbr 1000", "--rc 2 --tbr 1000 --pred-struct 1"]
       - SANITIZER: "signed-integer-overflow,unsigned-integer-overflow"
   script:
     - |
-      command="$PWD/$SANITIZER/SvtAv1EncApp -i Chimera-Aerial_480x264_2997fps_10bit_420_150frames.y4m ${svt_asm:+--asm $svt_asm} -n 60 --preset 8 -b output.ivf --progress 0"
+      command="$PWD/$SANITIZER/SvtAv1EncApp -i Chimera-Aerial_480x264_2997fps_10bit_420_150frames.y4m ${svt_asm:+--asm $svt_asm} -n 60 --preset 8 ${RC} -b output.ivf --progress 0"
       case $SANITIZER in
       thread) gdb -q -ex "handle SIG32 nostop" -ex r -ex bt -ex q --return-child-result --args $command ;;
       *) $command ;;

@@ -572,6 +572,11 @@ EbErrorType svt_aom_picture_manager_kernel_iter(void* context) {
         bool refs_available = true;
         // For INTER frames, check that all references are available before starting the pic
         if (entry_ppcs->slice_type == B_SLICE) {
+            // Snapshot eos
+            svt_block_on_mutex(enc_ctx->total_number_of_shown_frames_mutex);
+            const bool terminating_sequence_flag_received = enc_ctx->terminating_sequence_flag_received;
+            svt_release_mutex(enc_ctx->total_number_of_shown_frames_mutex);
+
             for (REF_FRAME_MINUS1 ref = LAST; ref < ALT + 1; ref++) {
                 if (!refs_available) {
                     break;
@@ -584,7 +589,7 @@ EbErrorType svt_aom_picture_manager_kernel_iter(void* context) {
 
                 refs_available = (ref_entry == NULL) ? false
                     : (scs->static_config.rate_control_mode && entry_ppcs->temporal_layer_index == 0 &&
-                       !ref_entry->feedback_arrived && !enc_ctx->terminating_sequence_flag_received)
+                       !ref_entry->feedback_arrived && !terminating_sequence_flag_received)
                     ? false
                     : (entry_ppcs->frame_end_cdf_update_mode && !ref_entry->frame_context_updated)
                     ? false

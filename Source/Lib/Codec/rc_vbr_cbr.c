@@ -792,14 +792,16 @@ void svt_av1_rc_process_rate_allocation(PictureControlSet* pcs, SequenceControlS
     if (scs->enc_ctx->rc_cfg.mode == AOM_CBR) {
         svt_aom_one_pass_rt_rate_alloc(ppcs);
     } else {
-        svt_block_on_mutex(scs->enc_ctx->stat_file_mutex);
+        // Guard the read in process_first_pass_stats() against the concurrent writers
+        // in firstpass.c
+        svt_block_on_mutex(scs->twopass.stats_buf_ctx->stats_in_write_mutex);
 
         restore_param(ppcs, ppcs->rate_control_param_ptr);
         svt_aom_process_rc_stat(ppcs);
         av1_set_target_rate(pcs);
         store_param(ppcs, ppcs->rate_control_param_ptr);
 
-        svt_release_mutex(scs->enc_ctx->stat_file_mutex);
+        svt_release_mutex(scs->twopass.stats_buf_ctx->stats_in_write_mutex);
     }
 }
 
