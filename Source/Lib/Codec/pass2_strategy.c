@@ -884,7 +884,19 @@ static void av1_rc_update_framerate(SequenceControlSet* scs) {
     int            vbr_max_bits;
     int            MBs = frame_info->num_mbs;
 
-    rc->avg_frame_bandwidth = (int)(scs->static_config.target_bit_rate / scs->new_framerate);
+    // The quotient is a double. Converting one whose value exceeds INT_MAX to
+    // int is undefined behaviour (C17 6.3.1.4p1), and the two ISAs realize it
+    // differently in hardware: x86-64 cvttsd2si yields INT_MIN (the integer
+    // indefinite value) while aarch64 fcvtzs saturates to INT_MAX. That makes
+    // this function a host-dependent oracle for any caller that reaches it
+    // directly. Saturate explicitly so every host agrees.
+    //
+    // Inert for every configuration the public API accepts:
+    // svt_av1_verify_settings caps target_bit_rate at 100000000 and
+    // svt_av1_new_framerate floors new_framerate at 0.1, so the quotient
+    // cannot exceed 1e9 and the clamp never engages.
+    const double avg_frame_bw = (double)scs->static_config.target_bit_rate / scs->new_framerate;
+    rc->avg_frame_bandwidth   = (int)AOMMIN(avg_frame_bw, (double)INT_MAX);
     // A maximum bitrate for a frame is defined.
     // The baseline for this aligns with HW implementations that
     // can support decode of 1080P content up to a bitrate of MAX_MB_RATE bits
