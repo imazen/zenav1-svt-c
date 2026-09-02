@@ -520,7 +520,12 @@ void svt_av1_rc_calc_qindex_rtc_cbr(PictureControlSet* pcs) {
             if (framerate < 0.1) {
                 framerate = 30.0;
             }
-            rc->avg_frame_bandwidth = (int)(bandwidth / framerate);
+            // Same undefined double-to-int conversion as av1_rc_update_framerate
+            // (pass2_strategy.c): a quotient above INT_MAX is UB (C17 6.3.1.4p1)
+            // and resolves differently per ISA and per optimization level.
+            // Saturate so every host agrees.
+            const double avg_frame_bw = (double)bandwidth / framerate;
+            rc->avg_frame_bandwidth   = (int)AOMMIN(avg_frame_bw, (double)INT_MAX);
             rc->max_frame_bandwidth = AOMMAX(rc->avg_frame_bandwidth, rc->max_frame_bandwidth);
         }
     }
