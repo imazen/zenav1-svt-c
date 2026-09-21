@@ -4776,6 +4776,8 @@ static void copy_api_from_app(SequenceControlSet* scs, EbSvtAv1EncConfiguration*
     // (enforced in enc_settings.c), which is what guarantees that.
     scs->seq_header.frame_id_numbers_present_flag = scs->static_config.max_managed_refs > 0;
 
+    scs->static_config.max_allowed_consecutive_frames_skips = config_struct->max_allowed_consecutive_frames_skips;
+
     // Override settings for Still IQ tune
     if (scs->static_config.tune == TUNE_IQ) {
         SVT_WARN(
@@ -5584,6 +5586,26 @@ static EbErrorType validate_on_the_fly_settings(EbBufferHeaderType* input_ptr, S
 /**********************************
 * Empty This Buffer
 **********************************/
+static bool is_frame_skip_protected(const EbBufferHeaderType* input_ptr) {
+    if (input_ptr->flags & EB_BUFFERFLAG_EOS) {
+        return true;
+    }
+
+    if (input_ptr->pic_type == EB_AV1_KEY_PICTURE || input_ptr->pic_type == EB_AV1_INTRA_ONLY_PICTURE ||
+        input_ptr->pic_type == EB_AV1_FW_KEY_PICTURE || input_ptr->pic_type == EB_AV1_SWITCH_PICTURE) {
+        return true;
+    }
+
+    for (const EbPrivDataNode* node = (const EbPrivDataNode*)input_ptr->p_app_private; node; node = node->next) {
+        if (node->node_type == REF_FRAME_SCALING_EVENT || node->node_type == REF_STORE_EVENT ||
+            node->node_type == REF_CLEAR_EVENT || node->node_type == REF_USE_EVENT ||
+            node->node_type == MG_SIZE_CHANGE_EVENT) {
+            return true;
+        }
+    }
+    return false;
+}
+
 EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType* svt_enc_component, EbBufferHeaderType* p_buffer) {
     EbErrorType         return_val     = EB_ErrorNone;
     EbEncHandle*        enc_handle_ptr = (EbEncHandle*)svt_enc_component->p_component_private;
@@ -5625,6 +5647,8 @@ EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType* svt_enc_component, 
         }
         enc_handle_ptr->eos_received = 1;
     }
+
+    // Get new Luma-8b buffer
 
     // Get new Luma-8b buffer & a new (Chroma-8b + Luma-Chroma-2bit) buffers; Lib will release once done.
     // svt_get_empty_object can fail without writing the out-param (single-thread
@@ -5691,10 +5715,12 @@ EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType* svt_enc_component, 
         svt_release_object(y8b_wrapper);
         return EB_ErrorInsufficientResources;
     }
+    const bool    skip_frame    = svt_av1_rc_try_reserve_frame_skip(scs, is_frame_skip_protected(p_buffer));
     InputCommand* input_cmd_obj = (InputCommand*)input_cmd_wrp->object_ptr;
     //Fill the command with two picture buffers
     input_cmd_obj->eb_input_wrapper_ptr = eb_wrapper_ptr;
     input_cmd_obj->y8b_wrapper          = y8b_wrapper;
+    input_cmd_obj->skip_frame           = skip_frame;
     // Only now is EOS actually in the pipeline; recording it earlier would make
     // deinit drain for a packet that was never going to be produced.
     enc_handle_ptr->eos_received += p_buffer->flags & EB_BUFFERFLAG_EOS;
@@ -5708,7 +5734,7 @@ EB_API EbErrorType svt_av1_enc_send_picture(EbComponentType* svt_enc_component, 
     }
 #endif
 
-    return return_val;
+    return return_val != EB_ErrorNone ? return_val : (skip_frame ? EB_NoErrorFrameSkipped : EB_ErrorNone);
 }
 
 static void copy_output_recon_buffer(EbBufferHeaderType* dst, EbBufferHeaderType* src) {
